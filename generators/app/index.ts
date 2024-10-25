@@ -34,6 +34,6 @@ export default class extends Generator {
   }
 
   async writing() {
-    this.log('copying files...', this.answers);
+    console.log('copying files...', this.answers);
   }
 }

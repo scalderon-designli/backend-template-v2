@@ -3,13 +3,18 @@
   "version": "0.1.0",
   "description": "",
   "files": [
-    "generators/app"
+    "generators"
   ],
+  "scripts": {
+    "build": "rm -rf dist && tsc && cpx 'generators/app/template/**/*' dist/generators/app/template",
+    "start": "yo backend"
+  },
   "keywords": [],
   "dependencies": {
     "yeoman-generator": "^7.3.3"
   },
   "devDependencies": {
+    "cpx2": "^8.0.0",
     "typescript": "^5.6.3"
   },
   "type": "module"
