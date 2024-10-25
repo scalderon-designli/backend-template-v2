@@ -1,0 +1,16 @@
+{
+  "name": "generator-backend",
+  "version": "0.1.0",
+  "description": "",
+  "files": [
+    "generators/app"
+  ],
+  "keywords": [],
+  "dependencies": {
+    "yeoman-generator": "^7.3.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "type": "module"
+}
