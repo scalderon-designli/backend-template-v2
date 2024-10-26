@@ -1,6 +1,7 @@
 import Generator from 'yeoman-generator';
-// import path from 'path';
+import path from 'path';
 import fs from 'fs';
+import { ExcelCommand } from './utils/excel-to-prisma.js';
 
 export default class extends Generator {
   answers: any;
@@ -34,6 +35,17 @@ export default class extends Generator {
   }
 
   async writing() {
-    console.log('copying files...', this.answers);
+    const { projectName, destinationPath, generatorFilePath } = this.answers;
+    this.log(`Creating project: ${projectName} in ${destinationPath}`);
+    const projectFullPath = path.join(destinationPath, projectName);
+    this.log(`Project path: ${projectFullPath}`);
+
+    this.fs.copy(
+      generatorFilePath,
+      this.destinationPath(path.join(projectFullPath, 'generator.xlsx'))
+    );
+
+    const excelToPrisma = new ExcelCommand();
+    await excelToPrisma.generatePrismaSchema(generatorFilePath);
   }
 }
