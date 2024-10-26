@@ -7,10 +7,11 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc && cpx 'generators/app/template/**/*' dist/generators/app/template",
-    "start": "yo backend"
+    "start": "npm run build && yo backend"
   },
   "keywords": [],
   "dependencies": {
+    "xlsx": "^0.18.5",
     "yeoman-generator": "^7.3.3"
   },
   "devDependencies": {
