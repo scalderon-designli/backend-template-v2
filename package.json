@@ -6,7 +6,7 @@
     "generators"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc && cpx 'generators/app/template/**/*' dist/generators/app/template",
+    "build": "rm -rf dist && tsc && cpx 'generators/app/templates/**/*' dist/generators/app/templates",
     "start": "npm run build && yo backend"
   },
   "keywords": [],
