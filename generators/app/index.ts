@@ -37,15 +37,12 @@ export default class extends Generator {
   async writing() {
     const { projectName, destinationPath, generatorFilePath } = this.answers;
     this.log(`Creating project: ${projectName} in ${destinationPath}`);
-    const projectFullPath = path.join(destinationPath, projectName);
-    this.log(`Project path: ${projectFullPath}`);
 
-    this.fs.copy(
-      generatorFilePath,
-      this.destinationPath(path.join(projectFullPath, 'generator.xlsx'))
+    // Copy the template to the destination path
+    this.fs.copyTpl(
+      this.templatePath('**/{*,.*,.*/**}'), // Include hidden files and folders
+      this.destinationPath(path.join(destinationPath, projectName)),
+      { name: projectName }
     );
-
-    const excelToPrisma = new ExcelCommand();
-    await excelToPrisma.generatePrismaSchema(generatorFilePath);
   }
 }
