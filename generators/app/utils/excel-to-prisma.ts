@@ -10,9 +10,9 @@ import {
   TypeField,
 } from './prisma.util.js';
 import { toCamel, toSnake } from './utils.js';
-
+import path from 'path';
 export class ExcelCommand {
-  async generatePrismaSchema(filePath: string) {
+  async generatePrismaSchema(filePath: string, destinationPath: string) {
     try {
       const models: Models = {};
 
@@ -134,8 +134,7 @@ export class ExcelCommand {
         });
       });
 
-      //   fs.writeFileSync('./prisma/schema.prisma', schemaPrismaContent);
-      console.log(schemaPrismaContent);
+      fs.writeFileSync(path.join(destinationPath, 'prisma/schema.prisma'), schemaPrismaContent);
 
       console.log('The file was generated successfully');
 
