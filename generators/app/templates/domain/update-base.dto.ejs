@@ -1,0 +1,4 @@
+import { PartialType } from '@nestjs/mapped-types';
+import { Create<%= domainPascalCase %>Dto } from './create-<%= domainSnakeCase %>.dto';
+
+export class Update<%= domainPascalCase %>Dto extends PartialType(Create<%= domainPascalCase %>Dto) {}

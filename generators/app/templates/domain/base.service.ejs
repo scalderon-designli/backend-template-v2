@@ -2,26 +2,26 @@ import { Injectable, Logger, UnprocessableEntityException } from '@nestjs/common
 import { plainToInstance } from 'class-transformer';
 
 import { PrismaService } from 'src/prisma.service';
-import { Base, Prisma } from '@prisma/client';
-import { CreateBaseDto } from './dto/create-base.dto';
+import { <%= domainPascalCase %>, Prisma } from '@prisma/client';
+import { Create<%= domainPascalCase %>Dto } from './dto/create-<%= domainSnakeCase %>.dto';
 import { FilterDto } from 'src/utils/filter.dto';
-import { PaginatedBase } from './dto/paginated-base.dto';
-import { UpdateBaseDto } from './dto/update-base.dto';
+import { Paginated<%= domainPascalCase %> } from './dto/paginated-<%= domainSnakeCase %>.dto';
+import { Update<%= domainPascalCase %>Dto } from './dto/update-<%= domainSnakeCase %>.dto';
 
 @Injectable()
-export class BaseService {
+export class <%= domainPascalCase %>Service {
   private readonly logger: Logger;
   constructor(private readonly prismaService: PrismaService) {
-    this.logger = new Logger(BaseService.name);
+    this.logger = new Logger(<%= domainPascalCase %>Service.name);
   }
 
-  async create(relations: string[], data: CreateBaseDto): Promise<Base> {
+  async create(relations: string[], data: Create<%= domainPascalCase %>Dto): Promise<<%= domainPascalCase %>> {
     try {
-      const result = await this.prismaService.base.create({
+      const result = await this.prismaService.<%= domainCamelCase %>.create({
         data,
       });
 
-      return plainToInstance(Base, result);
+      return plainToInstance(<%= domainPascalCase %>, result);
     } catch (error) {
       this.logger.error(error);
 
@@ -29,7 +29,7 @@ export class BaseService {
     }
   }
 
-  async findAll(relations: string[], filter: FilterDto<Prisma.BaseWhereInput>): Promise<PaginatedBase> {
+  async findAll(relations: string[], filter: FilterDto<Prisma.<%= domainPascalCase %>WhereInput>): Promise<Paginated<%= domainPascalCase %>> {
     try {
       const where = {
         deletedAt: null,
@@ -41,16 +41,16 @@ export class BaseService {
       };
 
       const [result, count] = await Promise.all([
-        this.prismaService.base.findMany({
+        this.prismaService.<%= domainCamelCase %>.findMany({
           ...filter.findOptions,
         }),
-        this.prismaService.base.count({
+        this.prismaService.<%= domainCamelCase %>.count({
           where: filter.findOptions.where,
         }),
       ]);
 
       return {
-        items: plainToInstance(Base, result),
+        items: plainToInstance(<%= domainPascalCase %>, result),
         hasNextPage: count > (filter.findOptions.skip || 0) + (filter.findOptions.take || 0),
         totalCount: count,
       };
@@ -61,16 +61,16 @@ export class BaseService {
     }
   }
 
-  async findByUUID(relations: string[], uuid: string): Promise<Base> {
+  async findByUUID(relations: string[], uuid: string): Promise<<%= domainPascalCase %>> {
     try {
-      const result = await this.prismaService.base.findUniqueOrThrow({
+      const result = await this.prismaService.<%= domainCamelCase %>.findUniqueOrThrow({
         where: {
           uuid,
           deletedAt: null,
         },
       });
 
-      return plainToInstance(Base, result);
+      return plainToInstance(<%= domainPascalCase %>, result);
     } catch (error) {
       this.logger.error(error);
 
@@ -78,9 +78,9 @@ export class BaseService {
     }
   }
 
-  async update(relations: string[], uuid: string, data: UpdateBaseDto): Promise<Base> {
+  async update(relations: string[], uuid: string, data: Update<%= domainPascalCase %>Dto): Promise<<%= domainPascalCase %>> {
     try {
-      const result = await this.prismaService.base.update({
+      const result = await this.prismaService.<%= domainCamelCase %>.update({
         data: {
           ...data,
 
@@ -92,7 +92,7 @@ export class BaseService {
         },
       });
 
-      return plainToInstance(Base, result);
+      return plainToInstance(<%= domainPascalCase %>, result);
     } catch (error) {
       this.logger.error(error);
 
@@ -100,9 +100,9 @@ export class BaseService {
     }
   }
 
-  async delete(relations: string[], uuid: string): Promise<Base> {
+  async delete(relations: string[], uuid: string): Promise<<%= domainPascalCase %>> {
     try {
-      const result = await this.prismaService.base.update({
+      const result = await this.prismaService.<%= domainCamelCase %>.update({
         data: {
           deletedAt: new Date(),
         },
@@ -112,7 +112,7 @@ export class BaseService {
         },
       });
 
-      return plainToInstance(Base, result);
+      return plainToInstance(<%= domainPascalCase %>, result);
     } catch (error) {
       this.logger.error(error);
 

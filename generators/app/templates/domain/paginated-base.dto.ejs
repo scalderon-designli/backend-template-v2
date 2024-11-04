@@ -1,0 +1,6 @@
+import { PageInfoDto } from 'src/utils/page-info.dto';
+import { <%= domainPascalCase %> } from '@prisma/client';
+
+export class Paginated<%= domainPascalCase %> extends PageInfoDto {
+  items!: <%= domainPascalCase %>[];
+}

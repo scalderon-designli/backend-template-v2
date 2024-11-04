@@ -2,6 +2,7 @@ import Generator from 'yeoman-generator';
 import path from 'path';
 import fs from 'fs';
 import { ExcelCommand } from './utils/excel-to-prisma.js';
+import { toSnake, toKebab, toPascal, toCamel } from './utils/utils.js';
 
 export default class extends Generator {
   answers: any;
@@ -40,7 +41,7 @@ export default class extends Generator {
 
     // Copy the template to the destination path
     this.fs.copyTpl(
-      this.templatePath('**/{*,.*,.*/**}'), // Include hidden files and folders
+      this.templatePath('initial/**/{*,.*,.*/**}'), // Include hidden files and folders
       this.destinationPath(path.join(destinationPath, projectName)),
       { name: projectName }
     );
@@ -78,6 +79,7 @@ export default class extends Generator {
           type: 'input',
           name: 'databaseUrl',
           message: 'Provide the database URL:',
+          default: 'mysql://root:my-secret-pw@localhost:3306/ssg-test',
         },
       ]);
 
@@ -114,27 +116,73 @@ export default class extends Generator {
 
   _generateModules() {
     this.log('Generate modules');
-    const domains = ['user'];
+    const domains = ['user', 'friend'];
+    fs.mkdirSync(path.join(this.answers.projectFullPath, 'src', 'domain'));
 
     domains.forEach((domain) => {
       this.log(`Generate module: ${domain}`);
 
-      // Copy all files at once with dynamic renaming
-      this.fs.copy(
-        this.templatePath('src/domain/base/**/*'), // Copy everything from base
+      const domainPath = path.join(
+        this.answers.projectFullPath,
+        'src',
+        'domain',
+        domain
+      );
+
+      fs.mkdirSync(domainPath);
+
+      const domainCases = {
+        domainCamelCase: toCamel(domain),
+        domainPascalCase: toPascal(domain),
+        domainKebabCase: toKebab(domain),
+        domainSnakeCase: toSnake(domain),
+      };
+
+      // Copy base controller
+      this.fs.copyTpl(
+        this.templatePath(`domain/base.controller.ejs`),
+        this.destinationPath(path.join(domainPath, `${domain}.controller.ts`)),
+        domainCases
+      );
+
+      // Copy base service
+      this.fs.copyTpl(
+        this.templatePath(`domain/base.service.ejs`),
+        this.destinationPath(path.join(domainPath, `${domain}.service.ts`)),
+        domainCases
+      );
+
+      // Copy base module
+      this.fs.copyTpl(
+        this.templatePath(`domain/base.module.ejs`),
+        this.destinationPath(path.join(domainPath, `${domain}.module.ts`)),
+        domainCases
+      );
+
+      fs.mkdirSync(path.join(domainPath, 'dto'));
+
+      // Copy create-base.dto.ejs
+      this.fs.copyTpl(
+        this.templatePath(`domain/create-base.dto.ejs`),
         this.destinationPath(
-          path.join(this.answers.projectFullPath, 'src', 'domain', domain)
+          path.join(
+            domainPath,
+            `dto/create-${domainCases.domainSnakeCase}.dto.ts`
+          )
         ),
-        {
-          processDestinationPath: (destinationPath: string) => {
-            return destinationPath.replace(/base/g, domain.toLowerCase());
-          },
-        }, // options object
-        {
-          domain,
-          domainLowerCase: domain.toLowerCase(),
-          domainUpperCase: domain.toUpperCase(),
-        }
+        domainCases
+      );
+
+      // Copy update-base.dto.ejs
+      this.fs.copyTpl(
+        this.templatePath(`domain/update-base.dto.ejs`),
+        this.destinationPath(
+          path.join(
+            domainPath,
+            `dto/update-${domainCases.domainSnakeCase}.dto.ts`
+          )
+        ),
+        domainCases
       );
     });
   }

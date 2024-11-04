@@ -1,0 +1,187 @@
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpException,
+    HttpStatus,
+    Param,
+    ParseArrayPipe,
+    Patch,
+    Post,
+    Query,
+  } from '@nestjs/common';
+  import { ApiQuery } from '@nestjs/swagger';
+  import { Prisma } from '@prisma/client';
+  import { GeneratedFindOptions } from '@chax-at/prisma-filter';
+  
+  import { FilterDto } from 'src/utils/filter.dto';
+  import { <%= domainPascalCase %>Service } from './<%= domainKebabCase %>.service';
+  import { Create<%= domainPascalCase %>Dto } from './dto/create-<%= domainKebabCase %>.dto';
+  import { Update<%= domainPascalCase %>Dto } from './dto/update-<%= domainKebabCase %>.dto';
+  
+  @Controller('<%= domainKebabCase %>')
+  export class <%= domainPascalCase %>Controller {
+    constructor(private readonly <%= domainCamelCase %>Service: <%= domainPascalCase %>Service) {}
+  
+    @Post()
+    @ApiQuery({ name: 'relations', type: 'string', isArray: true, required: false })
+    async create<%= domainPascalCase %>(
+      @Body() createDto: Create<%= domainPascalCase %>Dto,
+      @Query('relations', new ParseArrayPipe({ items: String, separator: ',', optional: true })) relations: string[] = [],
+    ) {
+      try {
+        const new<%= domainPascalCase %> = await this.<%= domainCamelCase %>Service.create(relations, createDto);
+        return { statusCode: HttpStatus.CREATED, message: 'Resource created successfully', data: new<%= domainPascalCase %> };
+      } catch (error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+    }
+  
+    @Get()
+    @ApiQuery({ name: 'relations', type: 'string', isArray: true, required: false })
+    @ApiQuery({ name: '_start', type: 'number', required: false })
+    @ApiQuery({ name: '_end', type: 'number', required: false })
+    @ApiQuery({ name: '_sort', type: 'string', required: false })
+    @ApiQuery({ name: '_order', type: 'string', required: false })
+    async findAll<%= domainPascalCase %>(
+      @Query()
+      query: FilterDto<Prisma.<%= domainPascalCase %>WhereInput>,
+      @Query('relations', new ParseArrayPipe({ items: String, separator: ',', optional: true }))
+      relations: string[] = [],
+      @Query('_start') start?: number,
+      @Query('_end') end?: number,
+      @Query('_sort') sort?: string,
+      @Query('_order') order?: 'asc' | 'desc',
+    ) {
+      try {
+        query.findOptions = query.findOptions || ({} as GeneratedFindOptions<Prisma.<%= domainPascalCase %>WhereInput>);
+        query.findOptions.where = query.findOptions.where || {};
+        const filters = { ...query, ...query.findOptions?.where };
+        const transformedFilters = this.transformFilters(filters);
+        if (start && end) {
+          query.findOptions.skip = start;
+          query.findOptions.take = end - start;
+        }
+        let orderBy: Prisma.<%= domainPascalCase %>OrderByWithRelationInput | undefined;
+        if (sort && order) {
+          orderBy = { [sort]: order };
+        }
+        return await this.<%= domainCamelCase %>Service.findAll(relations, {
+          ...query,
+          findOptions: {
+            ...query.findOptions,
+            where: transformedFilters,
+            orderBy: orderBy,
+          },
+        });
+      } catch (error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+    }
+  
+    @Get('/metadata')
+    @ApiQuery({ required: false })
+    async getMetadata<%= domainPascalCase %>() {
+      return <%= domainCamelCase %>Metadata;
+    }
+  
+    @Get(':uuid')
+    @ApiQuery({ name: 'relations', type: 'string', isArray: true, required: false })
+    async find<%= domainPascalCase %>ByUuid(
+      @Query('relations', new ParseArrayPipe({ items: String, separator: ',', optional: true })) relations: string[] = [],
+      @Param('uuid') uuid: string,
+    ) {
+      try {
+        const <%= domainCamelCase %> = await this.<%= domainCamelCase %>Service.findByUUID(relations, uuid);
+        if (!<%= domainCamelCase %>) {
+          throw new HttpException('Resource not found', HttpStatus.NOT_FOUND);
+        }
+        return <%= domainCamelCase %>;
+      } catch (error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+    }
+  
+    @Patch(':uuid')
+    @ApiQuery({ name: 'relations', type: 'string', isArray: true, required: false })
+    async update<%= domainPascalCase %>(
+      @Param('uuid') uuid: string,
+      @Query('relations', new ParseArrayPipe({ items: String, separator: ',', optional: true })) relations: string[] = [],
+      @Body() updateDto: Update<%= domainPascalCase %>Dto,
+    ) {
+      try {
+        const updated<%= domainPascalCase %> = await this.<%= domainCamelCase %>Service.update(relations, uuid, updateDto);
+        return { statusCode: HttpStatus.OK, message: 'Resource updated successfully', data: updated<%= domainPascalCase %> };
+      } catch (error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+    }
+  
+    @Delete(':uuid')
+    @ApiQuery({ name: 'relations', type: 'string', isArray: true, required: false })
+    async delete<%= domainPascalCase %>(
+      @Query('relations', new ParseArrayPipe({ items: String, separator: ',', optional: true })) relations: string[] = [],
+      @Param('uuid') uuid: string,
+    ) {
+      try {
+        await this.<%= domainCamelCase %>Service.delete(relations, uuid);
+        return { message: 'Resource deleted successfully' };
+      } catch (error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+    }
+  
+    private transformFilters(filters: any): Prisma.<%= domainPascalCase %>WhereInput {
+      const where: Prisma.<%= domainPascalCase %>WhereInput = {};
+      if (filters && Object.keys(filters).length > 0) {
+        for (const key in filters) {
+          if (filters.hasOwnProperty(key)) {
+            const [field, operator] = key.split('_');
+            if (!field || !operator) {
+              continue;
+            }
+            const prismaOperator = this.mapRefineOperatorToPrisma(operator);
+            if (!prismaOperator) {
+              continue;
+            }
+            let value = filters[key];
+            if (value === 'true') {
+              value = true;
+            } else if (value === 'false') {
+              value = false;
+            }
+            if (prismaOperator === 'in' || prismaOperator === 'notIn') {
+              value = value.split(',');
+            }
+  
+            where[field] = {
+              [prismaOperator]: value,
+            };
+          }
+        }
+      }
+      return where;
+    }
+  
+    private mapRefineOperatorToPrisma(operator: string): string | undefined {
+      const operatorMapping: Record<string, string> = {
+        eq: 'equals',
+        ne: 'not',
+        lt: 'lt',
+        gt: 'gt',
+        lte: 'lte',
+        gte: 'gte',
+        in: 'in',
+        nin: 'notIn',
+        contains: 'contains',
+        ncontains: 'not',
+        startswith: 'startsWith',
+        endswith: 'endsWith',
+        or: 'OR',
+        between: 'AND',
+      };
+      return operatorMapping[operator];
+    }
+  }
+  

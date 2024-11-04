@@ -1,0 +1,11 @@
+import { Module } from '@nestjs/common';
+
+import { <%= domainPascalCase %>Controller } from './<%= domainSnakeCase %>.controller';
+import { <%= domainPascalCase %>Service } from './<%= domainSnakeCase %>.service';
+
+@Module({
+  controllers: [<%= domainPascalCase %>Controller],
+  providers: [<%= domainPascalCase %>Service],
+  exports: [<%= domainPascalCase %>Service],
+})
+export class <%= domainPascalCase %>Module {}
