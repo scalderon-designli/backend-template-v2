@@ -55,10 +55,13 @@ export default class extends Generator {
 
     this.log('Installing dependencies...');
     this.spawnSync('npm', ['install'], { cwd: projectFullPath });
-    
+
     this.log('Generating Prisma schema from Excel...');
     const excelToPrisma = new ExcelCommand();
-    await excelToPrisma.generatePrismaSchema(generatorFilePath, projectFullPath);
+    await excelToPrisma.generatePrismaSchema(
+      generatorFilePath,
+      projectFullPath
+    );
 
     const { generateMigrations } = await this.prompt([
       {
@@ -83,19 +86,56 @@ export default class extends Generator {
 
       // Generate the Prisma client
       this._generatePrismaClient();
+
+      // Generate modules
+      this._generateModules();
     }
   }
 
   _generateMigrations(databaseUrl: string) {
     this.log('Creating .env file...');
-    fs.writeFileSync(path.join(this.answers.projectFullPath, '.env'), `DATABASE_URL=${databaseUrl}`);
+    fs.writeFileSync(
+      path.join(this.answers.projectFullPath, '.env'),
+      `DATABASE_URL=${databaseUrl}`
+    );
 
     this.log('Generate initial Prisma migration');
-    this.spawnSync('npx', ['prisma', 'migrate', 'dev', '--name', 'init'], { cwd: this.answers.projectFullPath });
+    this.spawnSync('npx', ['prisma', 'migrate', 'dev', '--name', 'init'], {
+      cwd: this.answers.projectFullPath,
+    });
   }
 
   _generatePrismaClient() {
     this.log('Generate Prisma client');
-    this.spawnSync('npx', ['prisma', 'generate'], { cwd: this.answers.projectFullPath });
+    this.spawnSync('npx', ['prisma', 'generate'], {
+      cwd: this.answers.projectFullPath,
+    });
+  }
+
+  _generateModules() {
+    this.log('Generate modules');
+    const domains = ['user'];
+
+    domains.forEach((domain) => {
+      this.log(`Generate module: ${domain}`);
+
+      // Copy all files at once with dynamic renaming
+      this.fs.copy(
+        this.templatePath('src/domain/base/**/*'), // Copy everything from base
+        this.destinationPath(
+          path.join(this.answers.projectFullPath, 'src', 'domain', domain)
+        ),
+        {
+          processDestinationPath: (destinationPath: string) => {
+            return destinationPath.replace(/base/g, domain.toLowerCase());
+          },
+        }, // options object
+        {
+          domain,
+          domainLowerCase: domain.toLowerCase(),
+          domainUpperCase: domain.toUpperCase(),
+        }
+      );
+    });
   }
 }
